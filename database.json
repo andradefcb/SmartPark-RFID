@@ -1,0 +1,243 @@
+{
+  "tabelaPrecos": {
+    "isencaoMinutos": 0,
+    "valor30min": 5,
+    "valor1Hora": 10,
+    "valorHoraAdicional": 5,
+    "valorDiaria": 40,
+    "limiteHorasDiaria": 8
+  },
+  "config": {
+    "admin": {
+      "login": "admin",
+      "senha": "123",
+      "nome": "Administrador SmartPark",
+      "cargo": "admin"
+    },
+    "pix": {
+      "chave": "andradefcb1212@gmail.com",
+      "tipoChave": "EMAIL",
+      "beneficiario": "Thiago Andrade de Azevedo",
+      "cidade": "MANAUS"
+    }
+  },
+  "veiculos": [
+    {
+      "id": "VEI-1792702378899",
+      "rfid": "123456789",
+      "nome": "Thiago Andrade",
+      "placa": "PHE1493",
+      "contato": "(92) 98405-7576",
+      "cpf": "704.127.412-88",
+      "login": "PHE1493",
+      "senha": "123",
+      "cargo": "cliente",
+      "criadoEm": "2026-10-22T20:52:58.899Z"
+    },
+    {
+      "id": "VEI-1793914194106",
+      "rfid": "123456",
+      "nome": "Stephanie",
+      "placa": "010203",
+      "contato": "(92) 98405-7576",
+      "cpf": "",
+      "login": "010203",
+      "senha": "1234",
+      "cargo": "cliente",
+      "criadoEm": "2026-11-05T21:29:54.106Z"
+    }
+  ],
+  "sessoes": [
+    {
+      "id": "SES-1793915281745",
+      "rfid": "123456789",
+      "veiculo": {
+        "nome": "Thiago Andrade",
+        "placa": "PHE1493",
+        "contato": "(92) 98405-7576",
+        "cpf": "704.127.412-88"
+      },
+      "entrada": 1793915281745,
+      "saida": 1793915285763,
+      "status": "PAGO",
+      "valorCobrado": 0,
+      "formaPagamento": "PIX",
+      "historicoCalculo": "Período de isenção gratuito (15 min). Valor isento.",
+      "tempoMinutos": 1,
+      "tempoFormatado": "1 min",
+      "valorBase": 0,
+      "desconto": 0,
+      "acrescimo": 0,
+      "valorRecebido": 0,
+      "troco": 0,
+      "observacoes": ""
+    },
+    {
+      "id": "SES-1793915328259",
+      "rfid": "123456789",
+      "veiculo": {
+        "nome": "Thiago Andrade",
+        "placa": "PHE1493",
+        "contato": "(92) 98405-7576",
+        "cpf": "704.127.412-88"
+      },
+      "entrada": 1793915328259,
+      "saida": 1793915345089,
+      "status": "PAGO",
+      "valorCobrado": 9,
+      "formaPagamento": "PIX",
+      "historicoCalculo": "Permanência de até 30 minutos: R$ 5.00",
+      "tempoMinutos": 1,
+      "tempoFormatado": "1 min",
+      "valorBase": 5,
+      "desconto": 1,
+      "acrescimo": 5,
+      "valorRecebido": 9,
+      "troco": 0,
+      "observacoes": ""
+    },
+    {
+      "id": "SES-1793919484965",
+      "rfid": "123456789",
+      "veiculo": {
+        "nome": "Thiago Andrade",
+        "placa": "PHE1493",
+        "contato": "(92) 98405-7576",
+        "cpf": "704.127.412-88"
+      },
+      "entrada": 1793919484965,
+      "saida": 1793919586706,
+      "status": "PAGO",
+      "valorCobrado": 5,
+      "formaPagamento": "PIX",
+      "historicoCalculo": "Permanência de até 30 minutos: R$ 5.00",
+      "tempoMinutos": 2,
+      "tempoFormatado": "2 min",
+      "valorBase": 5,
+      "desconto": 0,
+      "acrescimo": 0,
+      "valorRecebido": 5,
+      "troco": 0,
+      "observacoes": ""
+    },
+    {
+      "id": "SES-1793919487342",
+      "rfid": "123456",
+      "veiculo": {
+        "nome": "Stephanie",
+        "placa": "010203",
+        "contato": "(92) 98405-7576",
+        "cpf": "000.000.000-00"
+      },
+      "entrada": 1793919487342,
+      "saida": 1794002295376,
+      "status": "PAGO",
+      "valorCobrado": 40,
+      "formaPagamento": "PIX",
+      "historicoCalculo": "Estadia superior a 8h. Aplicada tarifa diária de R$ 40.00.",
+      "tempoMinutos": 1381,
+      "tempoFormatado": "23h 01m",
+      "valorBase": 40,
+      "desconto": 0,
+      "acrescimo": 0,
+      "valorRecebido": 40,
+      "troco": 0,
+      "observacoes": ""
+    },
+    {
+      "id": "SES-1794348481605",
+      "rfid": "123456789",
+      "veiculo": {
+        "nome": "Thiago Andrade",
+        "placa": "PHE1493",
+        "contato": "(92) 98405-7576",
+        "cpf": "704.127.412-88"
+      },
+      "entrada": 1794348481605,
+      "saida": 1794437032910,
+      "status": "CANCELADO",
+      "valorCobrado": null,
+      "formaPagamento": "PIX",
+      "historicoCalculo": null
+    },
+    {
+      "id": "SES-1794437068196",
+      "rfid": "123456789",
+      "veiculo": {
+        "nome": "Thiago Andrade",
+        "placa": "PHE1493",
+        "contato": "(92) 98405-7576",
+        "cpf": "704.127.412-88"
+      },
+      "entrada": 1794437068196,
+      "saida": 1794437198597,
+      "status": "CANCELADO",
+      "valorCobrado": null,
+      "formaPagamento": "PIX",
+      "historicoCalculo": null
+    },
+    {
+      "id": "SES-1794437125839",
+      "rfid": "123456",
+      "veiculo": {
+        "nome": "Stephanie",
+        "placa": "010203",
+        "contato": "(92) 98405-7576",
+        "cpf": "000.000.000-00"
+      },
+      "entrada": 1794437125839,
+      "saida": 1794437194869,
+      "status": "CANCELADO",
+      "valorCobrado": null,
+      "formaPagamento": "PIX",
+      "historicoCalculo": null
+    },
+    {
+      "id": "SES-1794440495262",
+      "rfid": "123456",
+      "veiculo": {
+        "nome": "Stephanie",
+        "placa": "010203",
+        "contato": "(92) 98405-7576",
+        "cpf": "000.000.000-00"
+      },
+      "entrada": 1794440495262,
+      "saida": 1794440497541,
+      "status": "PAGO",
+      "valorCobrado": 5,
+      "formaPagamento": "PIX",
+      "historicoCalculo": "Permanência de até 30 minutos: R$ 5.00",
+      "tempoMinutos": 1,
+      "tempoFormatado": "1 min",
+      "valorBase": 5,
+      "desconto": 0,
+      "acrescimo": 0,
+      "valorRecebido": 5,
+      "troco": 0,
+      "idPagamentoPix": "188064388825"
+    }
+  ],
+  "cobrancasPix": [
+    {
+      "id": "188064388825",
+      "provider": "mercadopago",
+      "sessaoId": "SES-1794440495262",
+      "valor": 5,
+      "saida": 1794440497541,
+      "calculo": {
+        "tempoMinutos": 1,
+        "tempoSegundos": 2,
+        "tempoFormatado": "1 min",
+        "valorTotal": 5,
+        "isTolerancia": false,
+        "detalhes": "Permanência de até 30 minutos: R$ 5.00"
+      },
+      "copiaECola": "00020126460014br.gov.bcb.pix0124andradefcb1212@gmail.com52040000530398654045.005802BR5916AT202501140835426009Sao Paulo62250521mpqrinter18806438882563049F55",
+      "qrCodeBase64": "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",
+      "expiraEm": "2026-11-11T20:11:37.541-04:00",
+      "status": "PAGO",
+      "criadoEm": 1794440497541,
+      "pagoEm": 1794440593332
+    }
+  ]
+}
