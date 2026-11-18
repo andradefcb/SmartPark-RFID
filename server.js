@@ -96,6 +96,11 @@ function salvarBanco(dados) {
   }
 }
 
+// Padroniza o código da tag: só dígitos hexadecimais, em maiúsculas ("3a:78 f2" -> "3A78F2")
+function normalizarRFID(codigo) {
+  return String(codigo || '').replace(/[^0-9a-fA-F]/g, '').toUpperCase();
+}
+
 function enviarEvento(tipo, dados) {
   const mensagem = `event: ${tipo}\ndata: ${JSON.stringify(dados)}\n\n`;
   sseClients.forEach(client => {
@@ -474,7 +479,7 @@ app.get('/api/veiculos', (req, res) => {
 
 app.get('/api/veiculos/:rfid', (req, res) => {
   const db = lerBanco();
-  const rfid = (req.params.rfid || '').trim().toUpperCase();
+  const rfid = normalizarRFID(req.params.rfid);
   const veiculo = db.veiculos.find(v => v.rfid.toUpperCase() === rfid);
   if (!veiculo) {
     return res.status(404).json({ sucesso: false, mensagem: 'Veículo não encontrado.' });
@@ -490,7 +495,10 @@ app.post('/api/veiculos', (req, res) => {
     return res.status(400).json({ sucesso: false, mensagem: 'Todos os campos são obrigatórios (RFID, Nome, Placa, Contato, CPF).' });
   }
 
-  rfid = rfid.trim().toUpperCase();
+  rfid = normalizarRFID(rfid);
+  if (!rfid) {
+    return res.status(400).json({ sucesso: false, mensagem: 'Código RFID inválido. Use apenas caracteres hexadecimais (0-9, A-F).' });
+  }
   nome = nome.trim();
   placa = placa.trim().toUpperCase();
   contato = contato.trim();
@@ -578,7 +586,10 @@ app.post('/api/leitura-rfid', (req, res) => {
     return res.status(400).json({ sucesso: false, mensagem: 'Código RFID não informado.' });
   }
 
-  rfid = rfid.trim().toUpperCase();
+  rfid = normalizarRFID(rfid);
+  if (!rfid) {
+    return res.status(400).json({ sucesso: false, mensagem: 'Código RFID inválido.' });
+  }
 
   const veiculo = db.veiculos.find(v => v.rfid.toUpperCase() === rfid);
 

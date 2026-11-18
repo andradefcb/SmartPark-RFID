@@ -530,8 +530,8 @@
                   <label class="form-label">Código RFID da Tag / Cartão: *</label>
                   <div style="display: flex; gap: 0.5rem;">
                     <input type="text" id="cad-rfid" class="form-control" placeholder="Ex: A1B2C3D4" required style="font-family: monospace; font-weight: 700; text-transform: uppercase;">
-                    <button type="button" class="btn btn-outline btn-sm" id="btn-capturar-rfid" title="Preenche com o último RFID lido">
-                      <i class="fa-solid fa-magnet"></i>
+                    <button type="button" class="btn btn-primary btn-sm" id="btn-capturar-rfid" title="Aproxime a tag do leitor para descobrir o código dela">
+                      <i class="fa-solid fa-wifi"></i> Ler Tag
                     </button>
                   </div>
                 </div>
@@ -896,6 +896,38 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-outline" onclick="fecharModal('modal-simulador')">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: LER TAG PARA CADASTRO                                 -->
+  <!-- ============================================================ -->
+  <div id="modal-captura-rfid" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-wifi text-primary"></i> Ler Código da Tag RFID</h3>
+        <button class="modal-close" id="btn-captura-cancelar">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.95rem; margin-bottom: 0.75rem;">
+          Aproxime a tag ou cartão do leitor RC522. O código será preenchido automaticamente no cadastro.
+        </p>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Enquanto esta janela estiver aberta, a leitura <strong>não</strong> abre a cancela nem registra entrada.
+        </p>
+        <div id="captura-status" style="padding: 0.75rem; border-radius: 8px; background: var(--bg-secondary, rgba(0,0,0,0.05)); margin-bottom: 1rem;"></div>
+
+        <div class="form-group">
+          <label class="form-label">Ou digite o código manualmente:</label>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" id="captura-rfid-manual" class="form-control" placeholder="Ex: 3A 78 F2 1B" style="font-family: monospace; font-weight: 700; text-transform: uppercase;">
+            <button type="button" class="btn btn-primary" id="btn-captura-manual">Usar</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" id="btn-captura-usar-ultimo">Usar última tag lida</button>
       </div>
     </div>
   </div>

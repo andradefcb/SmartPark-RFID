@@ -97,6 +97,7 @@ void setup() {
   SPI.begin();
   rfid.PCD_Init();
   rfid.PCD_SetAntennaGain(rfid.RxGain_max); // Máxima sensibilidade de leitura RFID
+  verificarLeitorRFID(); // Autoteste: confirma se o RC522 está respondendo no SPI
 
   // 4. Inicialização e autoteste do servomotor (cancela)
   // Define faixa de pulso segura do micro-servo SG90 (544us a 2400us)
@@ -136,7 +137,30 @@ void loop() {
 }
 
 // ====================================================================
+// AUTOTESTE DO LEITOR RC522
+// Lê o registrador de versão do chip. 0x00 ou 0xFF = leitor não responde
+// (fio solto, SDA/RST trocados, alimentação errada).
+// ====================================================================
+void verificarLeitorRFID() {
+  byte versao = rfid.PCD_ReadRegister(MFRC522::VersionReg);
+  if (versao == 0x00 || versao == 0xFF) {
+    Serial.println(F("ERRO:RC522_NAO_ENCONTRADO"));
+    Serial.println(F("Confira as ligacoes: SDA=10, SCK=13, MOSI=11, MISO=12, RST=4, 3.3V e GND."));
+  } else {
+    Serial.print(F("INFO:RC522_OK versao=0x"));
+    Serial.println(versao, HEX);
+  }
+}
+
+// ====================================================================
 // LEITURA DO CARTÃO RFID (MFRC522)
+//
+// COMO DESCOBRIR O CÓDIGO DE UMA TAG:
+//   1. Arduino IDE > Ferramentas > Monitor Serial (9600 baud).
+//   2. Aproxime a tag do leitor.
+//   3. Aparece uma linha "RFID:3A78F21B" -> o código é 3A78F21B.
+//   (Feche o Monitor Serial antes de conectar o site: a porta USB
+//    só pode ser usada por um programa de cada vez.)
 // ====================================================================
 void verificarLeituraRFID() {
   // Detecta se há um novo cartão RFID aproximado
@@ -200,6 +224,8 @@ void verificarComandosSerial() {
       Serial.println(F("STATUS:ACESSO_NEGADO"));
     } else if (comando == "PING") {
       Serial.println(F("PONG"));
+    } else if (comando == "DIAG" || comando == "DIAGNOSTICO") {
+      verificarLeitorRFID();
     } else if (comando == "TEST" || comando == "TESTAR") {
       Serial.println(F("TESTE_SERVO_EXECUTANDO"));
       abrirCancela();

@@ -95,3 +95,34 @@ O Arduino e a aplicação Web conversam através da porta USB (Baudrate: **9600*
   - `CLOSE` -> Abaixa a cancela (servo em 0°, acende LED vermelho).
   - `DENIED` -> Pisca o LED vermelho e toca alerta sonoro de acesso negado.
 
+  - `DIAG` -> Refaz o autoteste do leitor RC522 (responde `INFO:RC522_OK versao=0x92` ou `ERRO:RC522_NAO_ENCONTRADO`).
+
+---
+
+## 5. Como Descobrir o Código (UID) de uma Tag RFID
+
+Cada tag/cartão tem um código único (UID) gravado de fábrica, que o RC522 lê em hexadecimal (ex: `3A78F21B`). Há duas formas de descobrir:
+
+### Opção A — Pelo site (recomendado)
+1. Rode `node server.js` e abra `http://localhost:3000` no **Chrome ou Edge**.
+2. Clique em **Conectar Arduino** e escolha a porta COM da placa.
+   - Ao conectar aparece o aviso *"Leitor RFID RC522 detectado"*. Se aparecer *"não responde"*, revise a fiação.
+3. Entre como admin → aba **Cadastro de Veículos** → botão **Ler Tag**.
+4. Aproxime a tag do leitor. O código é preenchido sozinho no campo e o site avisa se a tag já estiver cadastrada.
+5. Preencha nome, placa etc. e salve. A partir daí, aproximar essa tag registra a entrada e **abre a cancela**.
+
+> Enquanto a janela "Ler Tag" estiver aberta, a leitura **não** abre a cancela nem registra entrada.
+
+### Opção B — Pelo Monitor Serial da Arduino IDE
+1. Feche o site (ou clique em desconectar Arduino) — a porta USB só pode ser usada por um programa de cada vez.
+2. Arduino IDE → **Ferramentas → Monitor Serial**, velocidade **9600**.
+3. Aproxime a tag: aparece `RFID:3A78F21B`. O código é o que vem depois de `RFID:`.
+4. Digite esse código no cadastro do site (espaços e `:` são removidos automaticamente).
+
+### Fluxo completo da cancela
+```
+Tag no leitor -> Arduino envia "RFID:<UID>" -> navegador (Web Serial) -> POST /api/leitura-rfid
+   cadastrada e fora do pátio   -> registra entrada  -> navegador envia "OPEN"   -> cancela sobe
+   cadastrada e paga (<15 min)  -> libera saída      -> navegador envia "OPEN"   -> cancela sobe
+   não cadastrada               -> acesso negado     -> navegador envia "DENIED" -> buzzer + LED vermelho
+```

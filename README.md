@@ -96,3 +96,7 @@ Projeto PEX 2° Período/
   * **Demo Admin:** Entra no painel da guarita com credenciais `admin` / `123`.
   * **Demo Cliente:** Entra no portal do motorista com credenciais `BRA2E19` / `123`.
 - No topo da página, use o botão **"Simular RFID"** para simular aproximação de cartões ou conecte o Arduino físico via USB pelo botão **"Conectar Arduino"**.
+
+## 🏷️ Descobrindo o código de uma tag RFID
+
+Na aba **Cadastro de Veículos**, clique em **Ler Tag** e aproxime a tag do leitor: o código (UID em hexadecimal, ex. `3A78F21B`) é preenchido sozinho. Também dá para ver o código pelo Monitor Serial da Arduino IDE (9600 baud), na linha `RFID:<código>`. Passo a passo completo em [arduino/ligacoes_e_componentes.md](arduino/ligacoes_e_componentes.md#5-como-descobrir-o-código-uid-de-uma-tag-rfid).

@@ -769,7 +769,7 @@ function configurarNavegacaoAbas() {
   if (btnNovoVeiculo) {
     btnNovoVeiculo.addEventListener('click', () => {
       mudarAba('tab-veiculos');
-      document.getElementById('cad-rfid').focus();
+      iniciarCapturaRFID();
     });
   }
 
@@ -838,17 +838,72 @@ function configurarOuvinteSerialRFID() {
   });
 }
 
+// ====================================================================
+// MODO "LER TAG PARA CADASTRO"
+// Enquanto ativo, a próxima tag aproximada NÃO abre a cancela nem
+// registra entrada: o código dela só é copiado para o formulário.
+// ====================================================================
+let timerCapturaRFID = null;
+
+function iniciarCapturaRFID() {
+  Estado.modoCaptura = true;
+  const status = document.getElementById('captura-status');
+  const conectado = window.arduinoSerial && arduinoSerial.conectado;
+  if (status) {
+    status.innerHTML = conectado
+      ? '<i class="fa-solid fa-spinner fa-spin"></i> Aguardando a tag no leitor...'
+      : '<i class="fa-solid fa-plug-circle-xmark"></i> Arduino não conectado. Clique em "Conectar Arduino" no topo ou digite o código abaixo.';
+  }
+  const inputManual = document.getElementById('captura-rfid-manual');
+  if (inputManual) inputManual.value = '';
+  abrirModal('modal-captura-rfid');
+
+  clearTimeout(timerCapturaRFID);
+  timerCapturaRFID = setTimeout(() => {
+    if (Estado.modoCaptura) {
+      cancelarCapturaRFID();
+      mostrarToast('Nenhuma tag lida em 30 segundos. Tente novamente.', 'warning');
+    }
+  }, 30000);
+}
+
+function cancelarCapturaRFID() {
+  Estado.modoCaptura = false;
+  clearTimeout(timerCapturaRFID);
+  fecharModal('modal-captura-rfid');
+}
+
+async function concluirCapturaRFID(rfid) {
+  cancelarCapturaRFID();
+  const inputCadRfid = document.getElementById('cad-rfid');
+  if (inputCadRfid) inputCadRfid.value = rfid;
+
+  // Avisa se essa tag já pertence a alguém
+  try {
+    const res = await fetch('/api/veiculos/' + encodeURIComponent(rfid));
+    if (res.ok) {
+      const dados = await res.json();
+      mostrarToast(`A tag ${rfid} já está cadastrada para ${dados.veiculo.placa} (${dados.veiculo.nome}).`, 'warning');
+      return;
+    }
+  } catch (e) { /* servidor fora do ar: segue com o preenchimento */ }
+
+  mostrarToast(`Tag lida: ${rfid}. Preencha os dados do titular.`, 'success');
+  document.getElementById('cad-nome')?.focus();
+}
+
 async function processarLeituraRFID(rfid) {
+  rfid = normalizarRFID(rfid);
   if (!rfid) return;
   Estado.ultimoRfidLido = rfid;
 
   const inputCadRfid = document.getElementById('cad-rfid');
-  if (document.getElementById('tab-veiculos')?.classList.contains('active')) {
-    inputCadRfid.value = rfid;
-    mostrarToast(`Código RFID ${rfid} capturado para cadastro!`, 'info');
-    document.getElementById('cad-nome').focus();
+  const modalCapturaAberto = document.getElementById('modal-captura-rfid')?.classList.contains('active');
+  if (Estado.modoCaptura && modalCapturaAberto) {
+    concluirCapturaRFID(rfid);
     return;
   }
+  Estado.modoCaptura = false; // modal foi fechado por fora: volta ao modo normal
 
   try {
     const res = await fetch('/api/leitura-rfid', {
@@ -1389,7 +1444,11 @@ function configurarEventosForms() {
   formVeiculo?.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const rfid = document.getElementById('cad-rfid').value.trim().toUpperCase();
+    const rfid = normalizarRFID(document.getElementById('cad-rfid').value);
+    if (!rfid) {
+      mostrarToast('Código RFID inválido. Use "Ler Tag" ou digite o código hexadecimal (ex: 3A78F21B).', 'danger');
+      return;
+    }
     const nome = document.getElementById('cad-nome').value.trim();
     const placa = document.getElementById('cad-placa').value.trim().toUpperCase();
     const contato = document.getElementById('cad-contato').value.trim();
@@ -1423,13 +1482,30 @@ function configurarEventosForms() {
     }
   });
 
-  document.getElementById('btn-capturar-rfid')?.addEventListener('click', () => {
+  document.getElementById('btn-capturar-rfid')?.addEventListener('click', iniciarCapturaRFID);
+
+  document.getElementById('btn-captura-usar-ultimo')?.addEventListener('click', () => {
     if (Estado.ultimoRfidLido) {
-      document.getElementById('cad-rfid').value = Estado.ultimoRfidLido;
-      mostrarToast(`Último RFID preenchido: ${Estado.ultimoRfidLido}`, 'info');
+      concluirCapturaRFID(Estado.ultimoRfidLido);
     } else {
-      mostrarToast('Nenhum RFID foi lido recentemente.', 'warning');
+      mostrarToast('Nenhuma tag foi lida ainda nesta sessão.', 'warning');
     }
+  });
+
+  document.getElementById('btn-captura-manual')?.addEventListener('click', () => {
+    const codigo = normalizarRFID(document.getElementById('captura-rfid-manual')?.value);
+    if (!codigo) {
+      mostrarToast('Digite um código hexadecimal válido (ex: 3A78F21B).', 'warning');
+      return;
+    }
+    concluirCapturaRFID(codigo);
+  });
+
+  document.getElementById('btn-captura-cancelar')?.addEventListener('click', cancelarCapturaRFID);
+
+  // Ao digitar/colar no campo, já padroniza (remove espaços e ":")
+  document.getElementById('cad-rfid')?.addEventListener('blur', (e) => {
+    e.target.value = normalizarRFID(e.target.value);
   });
 
   document.getElementById('btn-limpar-cad')?.addEventListener('click', () => {

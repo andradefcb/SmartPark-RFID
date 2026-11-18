@@ -3,6 +3,15 @@
  * Permite que o navegador se comunique diretamente com a placa Arduino via USB.
  */
 
+/**
+ * Padroniza o código da tag: só dígitos hexadecimais, em maiúsculas.
+ * "3a:78 f2-1b" -> "3A78F21B". Assim o código digitado à mão, o simulado
+ * e o lido pelo Arduino sempre batem com o que está no banco.
+ */
+function normalizarRFID(codigo) {
+  return String(codigo || '').replace(/[^0-9a-fA-F]/g, '').toUpperCase();
+}
+
 class ArduinoSerialController {
   constructor() {
     this.port = null;
@@ -133,7 +142,8 @@ class ArduinoSerialController {
 
       // 1. Detecção de Código RFID (formato "RFID:A1B2C3D4")
       if (linha.startsWith('RFID:')) {
-        const rfidCode = linha.replace('RFID:', '').trim().toUpperCase();
+        const rfidCode = normalizarRFID(linha.slice(5));
+        if (!rfidCode) continue;
         console.log('>>> Cartão RFID Detectado no Leitor Físico:', rfidCode);
 
         // Dispara evento global no navegador
@@ -147,6 +157,13 @@ class ArduinoSerialController {
         window.dispatchEvent(new CustomEvent('arduino-status', {
           detail: { status: linha }
         }));
+      }
+
+      // 3. Autoteste do leitor RC522 (enviado no boot ou pelo comando DIAG)
+      if (linha.startsWith('ERRO:RC522_NAO_ENCONTRADO')) {
+        window.mostrarToast && window.mostrarToast('Leitor RFID RC522 não responde! Confira os fios SDA=10, SCK=13, MOSI=11, MISO=12, RST=4 e a alimentação 3.3V.', 'danger');
+      } else if (linha.startsWith('INFO:RC522_OK')) {
+        window.mostrarToast && window.mostrarToast('Leitor RFID RC522 detectado e pronto.', 'success');
       }
     }
   }
