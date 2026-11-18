@@ -215,6 +215,54 @@
       "valorRecebido": 5,
       "troco": 0,
       "idPagamentoPix": "188064388825"
+    },
+    {
+      "id": "SES-1794855825058",
+      "rfid": "123456789",
+      "veiculo": {
+        "nome": "Thiago Andrade",
+        "placa": "PHE1493",
+        "contato": "(92) 98405-7576",
+        "cpf": "704.127.412-88"
+      },
+      "entrada": 1794855825058,
+      "saida": 1794856042081,
+      "status": "CANCELADO",
+      "valorCobrado": null,
+      "formaPagamento": "PIX",
+      "historicoCalculo": null
+    },
+    {
+      "id": "SES-1794970554467",
+      "rfid": "123456789",
+      "veiculo": {
+        "nome": "Thiago Andrade",
+        "placa": "PHE1493",
+        "contato": "(92) 98405-7576",
+        "cpf": "704.127.412-88"
+      },
+      "entrada": 1794970554467,
+      "saida": 1794970610275,
+      "status": "CANCELADO",
+      "valorCobrado": null,
+      "formaPagamento": "PIX",
+      "historicoCalculo": null
+    },
+    {
+      "id": "SES-1794970556669",
+      "rfid": "123456",
+      "veiculo": {
+        "nome": "Stephanie",
+        "placa": "010203",
+        "contato": "(92) 98405-7576",
+        "cpf": ""
+      },
+      "entrada": 1794970556669,
+      "saida": 1794970611894,
+      "status": "CANCELADO",
+      "valorCobrado": null,
+      "formaPagamento": "PIX",
+      "historicoCalculo": null
     }
   ],
   "cobrancasPix": [
@@ -238,6 +286,46 @@
       "status": "PAGO",
       "criadoEm": 1794440497541,
       "pagoEm": 1794440593332
+    },
+    {
+      "id": "189987032784",
+      "provider": "mercadopago",
+      "sessaoId": "SES-1794855825058",
+      "valor": 5,
+      "saida": 1794855838755,
+      "calculo": {
+        "tempoMinutos": 1,
+        "tempoSegundos": 13,
+        "tempoFormatado": "1 min",
+        "valorTotal": 5,
+        "isTolerancia": false,
+        "detalhes": "Permanência de até 30 minutos: R$ 5.00"
+      },
+      "copiaECola": "00020126460014br.gov.bcb.pix0124andradefcb1212@gmail.com52040000530398654045.005802BR5916AT202501140835426009Sao Paulo62250521mpqrinter189987032784630440D3",
+      "qrCodeBase64": "iVBORw0KGgoAAAANSUhEUgAABWQAAAVkAQMAAABpQ4TyAAAABlBMVEX///8AAABVwtN+AAAKIUlEQVR42uzdQXIiu7IGYFUwqCFL8FJYmr00luIlMPSAoF48bFGZkrCh3fdENHz/pO+tQxcfPZMylSoiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiLyH+Zl6fNWyvnPj1K29Vkpm/Ofh1J2///nqT6oOZ1f9/n5/dcLPvNeyuvX//x84+eDKtgOBHtaWlpaWlpaWlpaWlpa2ufT7tsHZ+0pPDt/2bGUeX3VVL+9nPlv61e/r7+nJNyUf//5jZ+f2H9PoqWlpaWlpaWlpaWlpaX9c239+4eqPeeCy+vpqj3WZyNt/T2HugkQ3lg3AaI2rOFpaWlpaWlpaWlpaWlpaWmT9lLgru+ez584bzCc2tX/lKvg4ffUN3af2NQNBlpaWlpaWlpaWlpaWlra/1J7WWDXxL7xt7WG3jWehxX6sS7Zy7rmrz+3WfPT0tLS0tLS0tLS0tLS0tIOutxrT/qlQh663Jcv7eeD97aGvqQ29suGRM6gKv+LnnxaWlpaWlpaWlpaWlpa2kfQjmevnerqf9dW/HdDbdw+6PYT8jn0+mDTHkz/80lxtLS0tLS0tLS0tLS0tLS3ZxpMVpvbGnr8gd+d7H4b1tA39St+H1paWlpaWlpaWlpaWlraf1+7W+vZeYNhpM2L/Xkdhj7aDtikG8FOgy73OTXSj76ClpaWlpaWlpaWlpaWlvZZtHn7IKe7s3tJ09Fzxf9ybn036CG4erK9Gx13z2YHLS0tLS0tLS0tLS0tLe0PCQvycH9XSSv02JMeHuRPHNZpbt2l36dBDf0yza2eBJ/TrDZaWlpaWlpaWlpaWlpa2mfTnkKTehl+2TFd4n3KGwz1wSFV5XMNPc5PD288rIjjbTV0WlpaWlpaWlpaWlpaWtrbtfkc9rJOSssF8VEjee0bP+Wa+7LyX9YHcxrvFieYL2sj+ftNFX9aWlpaWlpaWlpaWlpa2ofSBlxc7HfaXDKvFe/S8nMRfjOet97V7XftdgMtLS0tLS0tLS0tLS0t7XNq83ZAODW+pKb2ZVDxz+/epg2GzWDU2nLtZHu5ocudlpaWlpaWlpaWlpaWlvZebf6yslbI8/DwboUe2t6XdrLaVNfwL18r9CVPVmvns91TQ6elpaWlpaWlpaWlpaWlfTRtaXFLW1TfX5uUFiver2tRPc9e26aqfLzEOxThM4KWlpaWlpaWlpaWlpaW9jm14Rh5WevzI+3H+onT1RaA5Uu7ZFzXSD/YYDje8G9KS0tLS0tLS0tLS0tLS3undslN7eH/7dPy+ZAW5PNghd79/jzNLQxgb2av3XYjGC0tLS0tLS0tLS0tLS3to2s/0tMpbR8s7aS0U95gyBXyXEPPPeyHwfbBbnDUnZaWlpaWlpaWlpaWlpb2l9rw7rmteH98/6pP7ctaQy/tzz2mvvHSNpKX9vdsbpg3TktLS0tLS0tLS0tLS0v7BNrw2Skf5M7vfvv6zxdt5ef9hE17VvwjNdKXvJ9wQ5c7LS0tLS0tLS0tLS0tLe0Da5dUz+8uNMvbB9t07PwjvSBW8MfbB5cti5BDuT20tLS0tLS0tLS0tLS0tPfm6go9l8yX9WT36btLvMOdYZ12SSXzj7RCX27oyaelpaWlpaWlpaWlpaWlfUhtV0Nf0n5CLnDPa1G9qZCHvH/tJ0xhg+F1eA69yW27H7S0tLS0tLS0tLS0tLS0D6kNk9/yq07tMPQlrf6nwaC3eKi8/p7RyfYyvBEt/lxaWlpaWlpaWlpaWlpa2r+nXcJw87d2yV4t86CovqxHvS8l89rlvhms+bftnd3b9VrwuGlAS0tLS0tLS0tLS0tLS/ts2lDPzgXucF1ZXwLPPzfsJ3Rt8rXL/fqNaHmDgZaWlpaWlpaWlpaWlpb2b2l3g2PX3fK5ffdpvMS/HMzu1vxhgnnALeOj3oWWlpaWlpaWlpaWlpaW9sm0L18fnNoe8yloy3pd1zZd0T2nGvpNJ7tzG/u8Dm9bBmV6WlpaWlpaWlpaWlpaWton0tbZa/EYeVkr+OOm9jJY/cdx6d0/yGC825I/3z2gpaWlpaWlpaWlpaWlpf2Ntja1xxvBup70YDmsC/hjsOQu9107PPw1PXj5sW++0NLS0tLS0tLS0tLS0tI+n3aXauhLu/oPNfQr2wFBmy1XdiiWdMdY9wJaWlpaWlpaWlpaWlpa2ifU5or/aINh324HhP2Eubasn0+qH9P9ZUsYlx5uJ+vOoR/aYXTvtLS0tLS0tLS0tLS0tLR/SVsX5HH5HArcuzQYbZta0OdaMu8Syu55zX99AHt98PLTOXRaWlpaWlpaWlpaWlpa2sfTdtPR6+q/u7M7d7mPDqb//PtHbe/bdvba+88Vf1paWlpaWlpaWlpaWlraW6vS4SD3S1oth6L6MS/Z25PdU6ihh3Fth7Yqf1i/4tj+ns0Nk+JoaWlpaWlpaWlpaWlpaR9SmyvYh7VlvWt7j9q3NHstXBGWZ69tUlF9Gvz+bj+h3FBDp6WlpaWlpaWlpaWlpaV9PG34T3Gxn8vx3eVi9dh57nK/HDs/p5mfXse7hX+QZvZat4dBS0tLS0tLS0tLS0tLS/sbbVnf3X1wTu9e2i73kieSh4J4nea2CX3z3RsHXe6Xz9PS0tLS0tLS0tLS0tLSPqe2OzX+XZf7aEPiNb1g//WCOB09/608HT0/+L7LnZaWlpaWlpaWlpaWlpb2IbVdgf89dbnnQ+If4cvy/WV5P2EZtsmP+uY/s7vjzm5aWlpaWlpaWlpaWlpa2ju1Ux51Pr7hax5buqPe9RObtm9+Tu885gfjqjwtLS0tLS0tLS0tLS0t7VNo6+y1brG/tPXsfF1Zh2ua4Lv56YMa+ugBLS0tLS0tLS0tLS0tLe1f1J4TbwSr9ex8Z3dXJB9pl29mrzW4QY433DBOS0tLS0tLS0tLS0tLS/vQ2jLoSY9r+9yTHvYfXtLvCXd2T+OT3du1ZN70zd+xn0BLS0tLS0tLS0tLS0tL+2jal8GyftzlHgejDa4fm67eX1Yt02DU2kd7Z/f3+wm0tLS0tLS0tLS0tLS0tHdp9+2Dt74J/sryuauyb9Mx7TzB/NTeCPZHK3RaWlpaWlpaWlpaWlpa2gfWhmPkucv9ULXtjWBT6EnfDbrcQx98Weetz/UT+QKwLrS0tLS0tLS0tLS0tLS0tANtdw49X2hWp6NfXpDv7F4GJ9XzfsJu0PZOS0tLS0tLS0tLS0tLS/u/0l6+fTc+h31OeNBdANad7J7Gl34fkueWLndaWlpaWlpaWlpaWlpa2kfVdl3uXT07/J5wRfe8Hkw/he2Gfdp/eF9r6PnBMXzta3vUnZaWlpaWlpaWlpaWlpb299rR7LXxue3SLsiXNF481tAHNfepjlrrtLv0nfdPiqOlpaWlpaWlpaWlpaWl/ee1IiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIi/0r+LwAA//+0RBEz1mUipgAAAABJRU5ErkJggg==",
+      "expiraEm": "2026-11-16T15:33:58.755-04:00",
+      "status": "PENDENTE",
+      "criadoEm": 1794855838755
+    },
+    {
+      "id": "190259975054",
+      "provider": "mercadopago",
+      "sessaoId": "SES-1794970554467",
+      "valor": 5,
+      "saida": 1794970598196,
+      "calculo": {
+        "tempoMinutos": 1,
+        "tempoSegundos": 43,
+        "tempoFormatado": "1 min",
+        "valorTotal": 5,
+        "isTolerancia": false,
+        "detalhes": "Permanência de até 30 minutos: R$ 5.00"
+      },
+      "copiaECola": "00020126460014br.gov.bcb.pix0124andradefcb1212@gmail.com52040000530398654045.005802BR5916AT202501140835426009Sao Paulo62250521mpqrinter1902599750546304D557",
+      "qrCodeBase64": "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",
+      "expiraEm": "2026-11-17T23:26:38.196-04:00",
+      "status": "PENDENTE",
+      "criadoEm": 1794970598196
     }
   ]
 }

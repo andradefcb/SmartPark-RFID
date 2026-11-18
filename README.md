@@ -70,7 +70,7 @@ Projeto PEX 2° Período/
 | Componente | Pino no Módulo | Pino no Arduino | Observações |
 | :--- | :--- | :---: | :--- |
 | **Leitor RFID RC522** | **3.3V** | **3.3V** | ⚠️ **NÃO** ligar no 5V! |
-| | **RST** | **Pino 9** | Reset do RFID |
+| | **RST** | **Pino 4** | Reset do RFID |
 | | **GND** | **GND** | Terra |
 | | **MISO** | **Pino 12** | Barramento SPI |
 | | **MOSI** | **Pino 11** | Barramento SPI |

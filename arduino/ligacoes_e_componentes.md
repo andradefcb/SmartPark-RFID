@@ -28,7 +28,7 @@ Este documento descreve as conexões elétricas e a pinagem utilizada no protót
 | Pino no Módulo RC522 | Pino no Arduino Uno | Observações |
 | :--- | :---: | :--- |
 | **VCC / 3.3V** | **3.3V** | **NUNCA** ligar nos 5V! |
-| **RST** | **Pino 9** | Reset do módulo |
+| **RST** | **Pino 4** | Reset do módulo (Disposição Oficial) |
 | **GND** | **GND** | Terra comum |
 | **MISO** | **Pino 12** | Barramento SPI (Master In Slave Out) |
 | **MOSI** | **Pino 11** | Barramento SPI (Master Out Slave In) |

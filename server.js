@@ -609,6 +609,26 @@ app.post('/api/leitura-rfid', (req, res) => {
     });
   }
 
+  // Verifica se o veículo já pagou recentemente (tolerância de saída de 15 min) e está saindo pelo totem físico
+  const sessaoPagaRecente = (db.sessoes || [])
+    .filter(s => s.rfid.toUpperCase() === rfid && s.status === 'PAGO' && s.saida && (Date.now() - s.saida < 15 * 60 * 1000) && !s.saidaLiberadaTotem)
+    .sort((a, b) => b.saida - a.saida)[0];
+
+  if (sessaoPagaRecente) {
+    sessaoPagaRecente.saidaLiberadaTotem = true;
+    salvarBanco(db);
+    enviarEvento('saida_liberada_totem', { sessao: sessaoPagaRecente, veiculo });
+
+    return res.json({
+      sucesso: true,
+      registrado: true,
+      acao: 'SAIDA_AUTORIZADA',
+      sessao: sessaoPagaRecente,
+      veiculo,
+      mensagem: `Saída autorizada para ${veiculo.nome} (${veiculo.placa})! Pagamento confirmado. Cancela liberada!`
+    });
+  }
+
   // REGISTRA ENTRADA E INICIA O TEMPORIZADOR!
   const agora = Date.now();
   const novaSessao = {

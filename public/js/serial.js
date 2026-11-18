@@ -1,5 +1,5 @@
 /**
- * Módulo de Comunicação Web Serial API para Arduino
+ * Módulo de Comunicação Web Serial API para Arduino Uno
  * Permite que o navegador se comunique diretamente com a placa Arduino via USB.
  */
 
@@ -12,18 +12,13 @@ class ArduinoSerialController {
     this.writableStreamClosed = null;
     this.conectado = false;
     this.buffer = '';
-
-    // Elemento visual do status no topo da página
-    this.badgeEl = null;
-    this.textEl = null;
   }
 
   init() {
-    this.badgeEl = document.getElementById('arduino-status-badge');
-    this.textEl = document.getElementById('arduino-status-text');
-
-    if (this.badgeEl) {
-      this.badgeEl.addEventListener('click', () => {
+    // Configura botões de conectar Arduino (tanto no Login quanto na Barra Superior)
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.arduino-badge');
+      if (btn) {
         if (!this.conectado) {
           this.conectar();
         } else {
@@ -31,40 +26,48 @@ class ArduinoSerialController {
             this.desconectar();
           }
         }
-      });
-    }
-
-    // Verifica se o navegador suporta Web Serial API
-    if (!('serial' in navigator)) {
-      if (this.textEl) {
-        this.textEl.innerText = 'Serial não suportada';
       }
-      console.warn('Web Serial API não é suportada por este navegador. Use Google Chrome ou Microsoft Edge.');
+    });
+
+    // Detecta desconexão física do cabo USB
+    if ('serial' in navigator) {
+      navigator.serial.addEventListener('disconnect', (event) => {
+        console.warn('[Serial] Dispositivo USB desconectado fisicamente.');
+        this.desconectar(true);
+      });
+
+      // Tenta reconexão automática com porta previamente autorizada
+      this.tentarAutoConectar();
+    } else {
+      this.atualizarStatusUI(false, 'Serial não suportada');
+      console.warn('Web Serial API não é suportada por este navegador. Utilize o Google Chrome ou Microsoft Edge.');
+    }
+  }
+
+  async tentarAutoConectar() {
+    try {
+      const ports = await navigator.serial.getPorts();
+      if (ports && ports.length > 0) {
+        console.log('[Serial] Porta previamente autorizada encontrada. Tentando conectar...');
+        this.port = ports[0];
+        await this.iniciarConexaoPorta();
+      }
+    } catch (err) {
+      console.log('[Serial] Auto-conexão em espera:', err.message);
     }
   }
 
   async conectar() {
     if (!('serial' in navigator)) {
-      alert('Seu navegador não suporta Web Serial API. Para conectar o Arduino via USB, utilize o Google Chrome ou Microsoft Edge.\n\nVocê também pode utilizar o botão "Simular Leitura RFID" para realizar todos os testes!');
+      alert('Seu navegador não suporta Web Serial API. Para conectar o Arduino via USB, utilize o Google Chrome ou Microsoft Edge.\n\nVocê também pode utilizar o botão "Simular RFID" para testar sem a placa física!');
       return;
     }
 
     try {
-      // Solicita seleção da porta COM do Arduino
+      // Solicita seleção da porta COM do Arduino Uno
       this.port = await navigator.serial.requestPort();
-      await this.port.open({ baudRate: 9600 });
-
-      this.conectado = true;
-      this.atualizarStatusUI(true, 'Arduino Conectado');
-      window.mostrarToast && window.mostrarToast('Arduino conectado com sucesso à porta USB!', 'success');
-
-      // Configura escritor para enviar comandos à cancela
-      const textEncoder = new TextEncoderStream();
-      this.writableStreamClosed = textEncoder.readable.pipeTo(this.port.writable);
-      this.writer = textEncoder.writable.getWriter();
-
-      // Inicia escuta contínua de dados recebidos
-      this.lerDadosSerial();
+      await this.iniciarConexaoPorta();
+      window.mostrarToast && window.mostrarToast('Arduino Uno conectado com sucesso à porta USB!', 'success');
     } catch (err) {
       console.error('Falha ao conectar com o Arduino:', err);
       this.atualizarStatusUI(false, 'Conectar Arduino');
@@ -72,6 +75,22 @@ class ArduinoSerialController {
         alert('Erro ao conectar com a porta Serial: ' + err.message);
       }
     }
+  }
+
+  async iniciarConexaoPorta() {
+    if (!this.port) return;
+
+    await this.port.open({ baudRate: 9600 });
+    this.conectado = true;
+    this.atualizarStatusUI(true, 'Arduino Conectado');
+
+    // Configura escritor para envio de comandos (OPEN, CLOSE, DENIED, TEST, PING)
+    const textEncoder = new TextEncoderStream();
+    this.writableStreamClosed = textEncoder.readable.pipeTo(this.port.writable);
+    this.writer = textEncoder.writable.getWriter();
+
+    // Inicia escuta contínua de dados recebidos do Arduino
+    this.lerDadosSerial();
   }
 
   async lerDadosSerial() {
@@ -90,10 +109,12 @@ class ArduinoSerialController {
         }
       }
     } catch (err) {
-      console.warn('Erro durante leitura serial:', err);
+      console.warn('Conexão serial encerrada ou interrompida:', err.message);
     } finally {
-      this.reader.releaseLock();
-      this.desconectar();
+      if (this.reader) {
+        this.reader.releaseLock();
+      }
+      this.desconectar(true);
     }
   }
 
@@ -108,12 +129,12 @@ class ArduinoSerialController {
       linha = linha.trim();
       if (!linha) continue;
 
-      console.log('[Arduino Serial]:', linha);
+      console.log('[Arduino Uno]:', linha);
 
       // 1. Detecção de Código RFID (formato "RFID:A1B2C3D4")
       if (linha.startsWith('RFID:')) {
         const rfidCode = linha.replace('RFID:', '').trim().toUpperCase();
-        console.log('>>> Cartão RFID Detectado:', rfidCode);
+        console.log('>>> Cartão RFID Detectado no Leitor Físico:', rfidCode);
 
         // Dispara evento global no navegador
         window.dispatchEvent(new CustomEvent('rfid-lido', {
@@ -121,7 +142,7 @@ class ArduinoSerialController {
         }));
       }
 
-      // 2. Notificações de Status do Arduino (Cancela)
+      // 2. Notificações de Status do Arduino (Cancela, Sensor Ultrassônico, etc)
       if (linha.startsWith('STATUS:') || linha.startsWith('EVENTO:')) {
         window.dispatchEvent(new CustomEvent('arduino-status', {
           detail: { status: linha }
@@ -132,60 +153,66 @@ class ArduinoSerialController {
 
   async enviarComando(comando) {
     if (!this.conectado || !this.writer) {
-      console.log('[Simulação Serial] Comando enviado para placa:', comando.trim());
+      console.log('[Simulação Hardware] Comando enviado para placa:', comando.trim());
       return false;
     }
 
     try {
       const cmdFormatado = comando.trim() + '\n';
       await this.writer.write(cmdFormatado);
-      console.log('[Serial Enviado]:', cmdFormatado.trim());
+      console.log('[Serial Enviado ao Arduino]:', cmdFormatado.trim());
       return true;
     } catch (err) {
-      console.error('Erro ao enviar comando para Arduino:', err);
+      console.error('Erro ao enviar comando para o Arduino:', err);
       return false;
     }
   }
 
-  async desconectar() {
+  // Atalhos para controle físico
+  abrirCancela() { return this.enviarComando('OPEN'); }
+  fecharCancela() { return this.enviarComando('CLOSE'); }
+  testarCancela() { return this.enviarComando('TEST'); }
+  negarAcesso() { return this.enviarComando('DENIED'); }
+
+  async desconectar(silencioso = false) {
     try {
       this.conectado = false;
       if (this.reader) {
-        await this.reader.cancel();
+        await this.reader.cancel().catch(() => {});
       }
       if (this.writer) {
-        await this.writer.close();
+        await this.writer.close().catch(() => {});
       }
       if (this.port) {
-        await this.port.close();
+        await this.port.close().catch(() => {});
       }
     } catch (err) {
-      console.warn('Erro ao fechar conexão serial:', err);
+      console.warn('Erro ao fechar porta serial:', err);
     } finally {
       this.port = null;
       this.reader = null;
       this.writer = null;
       this.atualizarStatusUI(false, 'Conectar Arduino');
-      window.mostrarToast && window.mostrarToast('Arduino desconectado.', 'info');
+      if (!silencioso) {
+        window.mostrarToast && window.mostrarToast('Arduino desconectado.', 'info');
+      }
     }
   }
 
   atualizarStatusUI(conectado, texto) {
-    if (!this.badgeEl) return;
-    if (conectado) {
-      this.badgeEl.className = 'arduino-badge connected';
-    } else {
-      this.badgeEl.className = 'arduino-badge disconnected';
-    }
-    if (this.textEl) {
-      this.textEl.innerText = texto;
-    }
+    // Atualiza todos os botões de badge (no login e no header)
+    document.querySelectorAll('.arduino-badge').forEach(badge => {
+      badge.className = `arduino-badge ${conectado ? 'connected' : 'disconnected'}`;
+      const textSpan = badge.querySelector('.arduino-status-text') || badge.querySelector('#arduino-status-text');
+      if (textSpan) {
+        textSpan.innerText = texto;
+      }
+    });
   }
 }
 
-// Instância global
+// Instância global acessível no sistema
 const arduinoSerial = new ArduinoSerialController();
 document.addEventListener('DOMContentLoaded', () => {
   arduinoSerial.init();
 });
-

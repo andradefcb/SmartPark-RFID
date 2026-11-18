@@ -791,11 +791,11 @@ function configurarOuvinteSerialRFID() {
     processarLeituraRFID(rfid);
   });
 
-  // Notificações físicas do ESP32 (ex: passagem pelo sensor ultrassônico / cancela fechada)
+  // Notificações físicas do Arduino Uno (ex: passagem pelo sensor ultrassônico / cancela fechada)
   window.addEventListener('arduino-status', (e) => {
     const status = e.detail?.status || '';
     if (status.includes('CANCELA_FECHADA')) {
-      console.log('[Cancela ESP32] Passagem do veículo detectada com sucesso.');
+      console.log('[Cancela Arduino Uno] Passagem do veículo detectada com sucesso.');
       if (timerSaidaCliente) {
         clearInterval(timerSaidaCliente);
         timerSaidaCliente = null;
@@ -819,6 +819,22 @@ function configurarOuvinteSerialRFID() {
         carregarStatusDashboard();
       }
     }
+  });
+
+  // Botões de Controle Manual da Cancela Física (Arduino Uno)
+  document.getElementById('btn-manual-abrir-cancela')?.addEventListener('click', () => {
+    arduinoSerial.enviarComando('OPEN');
+    mostrarToast('Comando enviado: Abrindo cancela física...', 'success');
+  });
+
+  document.getElementById('btn-manual-fechar-cancela')?.addEventListener('click', () => {
+    arduinoSerial.enviarComando('CLOSE');
+    mostrarToast('Comando enviado: Fechando cancela física...', 'info');
+  });
+
+  document.getElementById('btn-manual-testar-cancela')?.addEventListener('click', () => {
+    arduinoSerial.enviarComando('TEST');
+    mostrarToast('Comando enviado: Executando ciclo de teste da cancela...', 'primary');
   });
 }
 
@@ -844,14 +860,17 @@ async function processarLeituraRFID(rfid) {
 
     if (!dados.registrado) {
       arduinoSerial.enviarComando('DENIED');
-      mostrarToast(dados.mensagem, 'warning');
 
       if (Estado.usuario && Estado.usuario.role === 'admin') {
-        if (confirm(`Tag RFID ${rfid} não cadastrada!\n\nDeseja cadastrar agora para associar ao titular e veículo?`)) {
-          mudarAba('tab-veiculos');
+        // Redireciona automaticamente para a aba de cadastro e preenche o RFID
+        mudarAba('tab-veiculos');
+        if (inputCadRfid) {
           inputCadRfid.value = rfid;
-          document.getElementById('cad-nome').focus();
+          document.getElementById('cad-nome')?.focus();
         }
+        mostrarToast(`Tag ${rfid} detectada! Preencha os dados para concluir o cadastro.`, 'info');
+      } else {
+        mostrarToast(dados.mensagem, 'warning');
       }
       return;
     }
@@ -870,12 +889,33 @@ async function processarLeituraRFID(rfid) {
       return;
     }
 
+    if (dados.acao === 'SAIDA_AUTORIZADA') {
+      arduinoSerial.enviarComando('OPEN');
+      mostrarToast(`🚗 Saída autorizada: ${dados.veiculo.placa} - Pagamento confirmado. Cancela aberta!`, 'success');
+
+      if (Estado.usuario && Estado.usuario.role === 'admin') {
+        carregarSessoesAtivas();
+        carregarHistorico();
+        carregarStatusDashboard();
+      } else if (Estado.usuario && Estado.usuario.role === 'cliente') {
+        carregarDadosPortalCliente(dados.veiculo.rfid);
+      }
+      return;
+    }
+
     if (dados.acao === 'JA_ESTACIONADO') {
       mostrarToast(`Veículo ${dados.veiculo.placa} já no pátio!`, 'info');
 
       if (Estado.usuario && Estado.usuario.role === 'admin') {
         mudarAba('tab-pagamento');
         selecionarSessaoParaPagamento(dados.sessao.id);
+      } else if (!Estado.usuario) {
+        // Se estiver na tela de login, preenche automaticamente para facilitar o acesso
+        const inputLogin = document.getElementById('input-login');
+        if (inputLogin) {
+          inputLogin.value = dados.veiculo.placa;
+          document.getElementById('input-senha')?.focus();
+        }
       }
       return;
     }

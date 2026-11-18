@@ -41,6 +41,15 @@
             <i class="fa-solid fa-right-to-bracket"></i> Entrar no Sistema
           </button>
         </form>
+
+        <!-- Conexão USB com o Arduino Físico na Tela de Login -->
+        <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-light); display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+          <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Comunicação com Arduino Físico:</span>
+          <button id="arduino-status-badge-login" class="arduino-badge disconnected" type="button" title="Conectar ou desconectar Arduino Uno via USB">
+            <span class="status-dot"></span>
+            <span class="arduino-status-text" id="arduino-status-text-login">Conectar Arduino</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -88,7 +97,7 @@
         <div class="nav-actions">
           <button id="arduino-status-badge" class="arduino-badge disconnected" title="Conectar ou desconectar Arduino via USB">
             <span class="status-dot"></span>
-            <span id="arduino-status-text">Conectar Arduino</span>
+            <span class="arduino-status-text" id="arduino-status-text">Conectar Arduino</span>
           </button>
 
           <button class="btn btn-outline btn-sm" id="btn-abrir-simulador" title="Testar leitura de RFID">
@@ -343,6 +352,24 @@
               </button>
               <button class="btn btn-primary btn-sm" id="btn-novo-veiculo-atalho">
                 <i class="fa-solid fa-plus"></i> Novo Cadastro
+              </button>
+            </div>
+          </div>
+
+          <!-- Painel de Controle Físico da Cancela (Arduino Uno) -->
+          <div style="background: white; border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.88rem; font-weight: 700; color: var(--text-main);">
+              <i class="fa-solid fa-microchip text-primary"></i> Cancela Física (Arduino Uno):
+            </div>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+              <button class="btn btn-outline btn-sm" id="btn-manual-abrir-cancela" title="Abrir cancela no servo motor (OPEN)">
+                <i class="fa-solid fa-door-open text-success"></i> Abrir Cancela
+              </button>
+              <button class="btn btn-outline btn-sm" id="btn-manual-fechar-cancela" title="Fechar cancela no servo motor (CLOSE)">
+                <i class="fa-solid fa-door-closed text-danger"></i> Fechar Cancela
+              </button>
+              <button class="btn btn-outline btn-sm" id="btn-manual-testar-cancela" title="Executar ciclo de teste (TEST)">
+                <i class="fa-solid fa-play text-primary"></i> Testar Cancela
               </button>
             </div>
           </div>

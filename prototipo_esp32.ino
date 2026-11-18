@@ -1,39 +1,56 @@
 /******************************************************************************/
 /*  Projeto PEX 2° Período: Sistema de Estacionamento Inteligente com RFID    */
-/*  VERSÃO ESPECIAL: ESP32 (NodeMCU / DOIT ESP32 DevKit v1)                  */
-/*  Componentes: ESP32, MFRC522 (RFID), Servo Motor (ESP32Servo),             */
+/*  VERSÃO: Arduino Uno / Nano (ATmega328P)                                   */
+/*  Componentes: Arduino Uno, MFRC522 (RFID), Servo Motor SG90 (Cancela),     */
 /*               Sensor Ultrassônico HC-SR04, LEDs Indicadores e Buzzer       */
 /******************************************************************************/
 
 #include <SPI.h>
 #include <MFRC522.h>
-#include <ESP32Servo.h>
+#include <Servo.h>
 
 // ====================================================================
-// MAPEAMENTO DE PINOS DO ESP32 (30 ou 38 pinos)
+// MAPEAMENTO OFICIAL DE PINOS NO ARDUINO UNO
 // ====================================================================
 
-// --- LEITOR RFID RC522 (Barramento SPI Padrão VSPI do ESP32) ---
-// ATENÇÃO: Alimente o RC522 no pino 3V3 do ESP32 (NUNCA NO 5V!)
-#define SS_PIN       5   // Pino SDA (SS) do RC522
-#define RST_PIN      22  // Pino RST do RC522
-// Demais pinos do RC522 conectados no SPI padrão:
-// SCK  -> GPIO 18
-// MISO -> GPIO 19
-// MOSI -> GPIO 23
+// --- LEITOR RFID RC522 (Comunicação SPI por Hardware) ---
+// ⚠️ ATENÇÃO: Ligue o pino 3.3V do RC522 EXCLUSIVAMENTE nos 3.3V do Arduino Uno!
+//    NUNCA ligue no 5V para não danificar o leitor RFID.
+// -------------------------------------------------------------
+// Pino do RC522        Liga no Arduino Uno
+// SDA (SS)      ----->  Pino Digital 10
+// SCK           ----->  Pino Digital 13
+// MOSI          ----->  Pino Digital 11
+// MISO          ----->  Pino Digital 12
+// RST           ----->  Pino Digital 4
+// 3.3V          ----->  Pino 3.3V (NUNCA 5V)
+// GND           ----->  GND
+// IRQ           ----->  Não conecta
+// -------------------------------------------------------------
+#define SS_PIN       10   // Pino SDA (SS) do RC522 -> Digital 10
+#define RST_PIN      4    // Pino RST do RC522     -> Digital 4
 
-// --- ATUADORES E SENSORES ---
-#define PINO_SERVO     13  // Pino de sinal PWM do Servo Motor da Cancela
-#define PINO_TRIG      25  // Pino TRIG do sensor ultrassônico HC-SR04
-#define PINO_ECHO      26  // Pino ECHO do sensor ultrassônico HC-SR04
-#define PINO_LED_VERDE 2   // LED Verde: Cancela aberta (Pode usar LED onboard no GPIO 2)
-#define PINO_LED_VERM  4   // LED Vermelho: Cancela fechada / Pare
-#define PINO_BUZZER    27  // Buzzer ativo ou passivo (feedback sonoro)
+// --- ATUADORES E DEMAIS SENSORES ---
+#define PINO_SERVO     6  // Sinal PWM do Servo Motor da Cancela (Pino Digital 6)
+#define PINO_TRIG      3  // Pino TRIG do sensor ultrassônico HC-SR04
+#define PINO_ECHO      2  // Pino ECHO do sensor ultrassônico HC-SR04
+#define PINO_LED_VERDE 7  // LED Verde: Cancela aberta (com resistor 220Ω)
+#define PINO_LED_VERM  8  // LED Vermelho: Cancela fechada (com resistor 220Ω)
+#define PINO_BUZZER    5  // Buzzer: Alerta sonoro de acesso negado
 
-// --- CONFIGURAÇÃO DOS ÂNGULOS DO SERVO ---
-const int ANGULO_FECHADO = 0;   // Cancela abaixada (fechada)
-const int ANGULO_ABERTO  = 90;  // Cancela levantada (aberta)
-const int DISTANCIA_DETECCAO = 15; // Distância em cm para detectar passagem do veículo
+// ====================================================================
+// CONFIGURAÇÃO DO BUZZER (Ativo em Nível Baixo vs Alto)
+// ====================================================================
+// A grande maioria dos módulos de buzzer para Arduino (placa com 3 pinos)
+// aciona em nível BAIXO (LOW = apita, HIGH = desligado).
+// Se o buzzer ficava apitando direto ao ligar, deixe BUZZER_ATIVO_LOW = true.
+// Se estiver usando um buzzer comum de 2 pernas ligado direto ao GND, mude para false.
+const bool BUZZER_ATIVO_LOW = true;
+
+// --- CONFIGURAÇÃO DOS ÂNGULOS DO SERVO E DISTÂNCIA ---
+const int ANGULO_FECHADO = 10;     // Cancela abaixada (10° evita forçar o batente físico do SG90)
+const int ANGULO_ABERTO  = 90;     // Cancela levantada (90°)
+const int DISTANCIA_DETECCAO = 15; // Distância de passagem em cm (HC-SR04)
 
 // --- OBJETOS ---
 MFRC522 rfid(SS_PIN, RST_PIN);
@@ -42,46 +59,63 @@ Servo servoCancela;
 // --- VARIÁVEIS DE CONTROLE ---
 bool cancelaAberta = false;
 unsigned long tempoAbertura = 0;
-const unsigned long TEMPO_MAXIMO_ABERTA = 7000; // Tempo máximo de cancela aberta (7s)
+const unsigned long TEMPO_MAXIMO_ABERTA = 7000; // Tempo máximo de cancela aberta por segurança (7s)
 String ultimoUidLido = "";
 unsigned long tempoUltimaLeitura = 0;
 const unsigned long INTERVALO_LEITURA_RFID = 2500; // Evita leitura repetida do mesmo cartão em 2.5s
 
 // ====================================================================
+// FUNÇÕES AUXILIARES DO BUZZER (APENAS PARA ACESSO NEGADO)
+// ====================================================================
+void desligarBuzzer() {
+  digitalWrite(PINO_BUZZER, BUZZER_ATIVO_LOW ? HIGH : LOW);
+}
+
+void ligarBuzzer() {
+  digitalWrite(PINO_BUZZER, BUZZER_ATIVO_LOW ? LOW : HIGH);
+}
+
+// ====================================================================
 // CONFIGURAÇÃO INICIAL (SETUP)
 // ====================================================================
 void setup() {
-  // Inicialização Serial a 115200 baud (padrão mais rápido para ESP32)
-  // ou 9600 para manter compatibilidade direta com o Web Serial
   Serial.begin(9600);
-  delay(1000);
+  Serial.setTimeout(50);
 
-  // Inicializa barramento SPI para o ESP32 (SCK=18, MISO=19, MOSI=23, SS=5)
-  SPI.begin(18, 19, 23, SS_PIN);
-  rfid.PCD_Init();
+  // 1. Configura o pino do buzzer iniciando TOTALMENTE DESLIGADO (silencioso)
+  desligarBuzzer();
+  pinMode(PINO_BUZZER, OUTPUT);
+  desligarBuzzer();
 
-  // Configuração dos pinos de entrada e saída
+  // 2. Configura os pinos dos LEDs e ultrassônico
   pinMode(PINO_TRIG, OUTPUT);
   pinMode(PINO_ECHO, INPUT);
   pinMode(PINO_LED_VERDE, OUTPUT);
   pinMode(PINO_LED_VERM, OUTPUT);
-  pinMode(PINO_BUZZER, OUTPUT);
 
-  // Alocação de temporizadores de hardware para o Servo no ESP32
-  ESP32PWM::allocateTimer(0);
-  ESP32PWM::allocateTimer(1);
-  ESP32PWM::allocateTimer(2);
-  ESP32PWM::allocateTimer(3);
-  servoCancela.setPeriodHertz(50); // Servo padrão analógico SG90 roda em 50Hz
-  servoCancela.attach(PINO_SERVO, 500, 2400); // Faixa de pulso segura (500us a 2400us)
+  // 3. Inicializa barramento SPI padrão do Arduino Uno e o leitor RC522
+  SPI.begin();
+  rfid.PCD_Init();
+  rfid.PCD_SetAntennaGain(rfid.RxGain_max); // Máxima sensibilidade de leitura RFID
 
-  // Inicia com cancela fechada
-  fecharCancela();
+  // 4. Inicialização e autoteste do servomotor (cancela)
+  // Define faixa de pulso segura do micro-servo SG90 (544us a 2400us)
+  servoCancela.attach(PINO_SERVO, 544, 2400);
 
-  // Feedback sonoro de inicialização
-  tocarBip(150);
+  // Teste de movimento inicial para conferir visualmente o funcionamento:
+  servoCancela.write(ANGULO_ABERTO);  // Sobe brevemente a cancela
+  digitalWrite(PINO_LED_VERDE, HIGH);
+  digitalWrite(PINO_LED_VERM, LOW);
+  delay(500);
 
-  Serial.println(F("ESP32_SMARTPARK_PRONTO"));
+  servoCancela.write(ANGULO_FECHADO); // Abaixa a cancela
+  digitalWrite(PINO_LED_VERDE, LOW);
+  digitalWrite(PINO_LED_VERM, HIGH);
+  cancelaAberta = false;
+
+  Serial.println(F("ARDUINO_UNO_SMARTPARK_PRONTO"));
+  Serial.println(F("Buzzer: Silencioso (ativo apenas em acesso negado)"));
+  Serial.println(F("RFID RC522: Pinos configurados (RST=4, SS=10, MOSI=11, MISO=12, SCK=13)"));
   Serial.println(F("Aguardando aproximacao de cartao RFID..."));
 }
 
@@ -89,13 +123,13 @@ void setup() {
 // LOOP PRINCIPAL
 // ====================================================================
 void loop() {
-  // 1. Processa comandos recebidos do computador / site via Serial (OPEN, CLOSE, DENIED)
+  // 1. Processa comandos recebidos do computador / site via Serial (OPEN, CLOSE, DENIED, TEST, PING)
   verificarComandosSerial();
 
   // 2. Realiza leitura do leitor RFID MFRC522
   verificarLeituraRFID();
 
-  // 3. Gerencia fechamento inteligente da cancela após passagem do veículo
+  // 3. Gerencia fechamento inteligente da cancela após passagem do veículo ou timeout
   gerenciarFechamentoCancela();
 
   delay(40);
@@ -105,15 +139,17 @@ void loop() {
 // LEITURA DO CARTÃO RFID (MFRC522)
 // ====================================================================
 void verificarLeituraRFID() {
+  // Detecta se há um novo cartão RFID aproximado
   if (!rfid.PICC_IsNewCardPresent()) {
     return;
   }
 
+  // Realiza a leitura dos dados do cartão
   if (!rfid.PICC_ReadCardSerial()) {
     return;
   }
 
-  // Formata o UID lido em Hexadecimal maiúsculo (ex: A1B2C3D4)
+  // Formata o UID do cartão em hexadecimal maiúsculo (ex: A1B2C3D4)
   String uidAtual = "";
   for (byte i = 0; i < rfid.uid.size; i++) {
     if (rfid.uid.uidByte[i] < 0x10) {
@@ -123,7 +159,7 @@ void verificarLeituraRFID() {
   }
   uidAtual.toUpperCase();
 
-  // Filtro de repetição rápida
+  // Filtro de tempo para evitar leituras repetidas imediatas do mesmo cartão
   unsigned long agora = millis();
   if (uidAtual == ultimoUidLido && (agora - tempoUltimaLeitura < INTERVALO_LEITURA_RFID)) {
     rfid.PICC_HaltA();
@@ -134,14 +170,12 @@ void verificarLeituraRFID() {
   ultimoUidLido = uidAtual;
   tempoUltimaLeitura = agora;
 
-  // Bip sonoro rápido de leitura confirmada
-  tocarBip(80);
-
-  // Envia pela porta Serial para o Sistema Web
-  // Formato: "RFID:123456"
-  Serial.print("RFID:");
+  // Envia no formato padrão esperado pela aplicação web: "RFID:<UID>"
+  // (Nota: o buzzer permanece silencioso aqui conforme solicitado)
+  Serial.print(F("RFID:"));
   Serial.println(uidAtual);
 
+  // Finaliza a comunicação com o cartão atual
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
 }
@@ -164,6 +198,14 @@ void verificarComandosSerial() {
     } else if (comando == "DENIED" || comando == "RECUSADO") {
       notificarAcessoNegado();
       Serial.println(F("STATUS:ACESSO_NEGADO"));
+    } else if (comando == "PING") {
+      Serial.println(F("PONG"));
+    } else if (comando == "TEST" || comando == "TESTAR") {
+      Serial.println(F("TESTE_SERVO_EXECUTANDO"));
+      abrirCancela();
+      delay(2000);
+      fecharCancela();
+      Serial.println(F("TESTE_SERVO_FINALIZADO"));
     }
   }
 }
@@ -177,7 +219,6 @@ void abrirCancela() {
   digitalWrite(PINO_LED_VERM, LOW);
   cancelaAberta = true;
   tempoAbertura = millis();
-  tocarBip(120);
 }
 
 void fecharCancela() {
@@ -200,7 +241,7 @@ void gerenciarFechamentoCancela() {
     return;
   }
 
-  // Fecha automaticamente quando o carro se afastar do sensor ultrassônico
+  // Fecha automaticamente quando o carro se afastar do sensor ultrassônico (após 2.5s)
   if (tempoPassado > 2500 && distancia > DISTANCIA_DETECCAO) {
     fecharCancela();
     Serial.println(F("EVENTO:CANCELA_FECHADA_PASSAGEM"));
@@ -215,24 +256,22 @@ int lerDistanciaUltrassom() {
   delayMicroseconds(10);
   digitalWrite(PINO_TRIG, LOW);
 
-  long duracao = pulseIn(PINO_ECHO, HIGH, 25000); // Timeout 25ms
+  long duracao = pulseIn(PINO_ECHO, HIGH, 25000); // Timeout de 25ms
   if (duracao == 0) return 999;
   return duracao / 58;
 }
 
+// ====================================================================
+// FEEDBACK DE ACESSO NEGADO (ÚNICO MOMENTO EM QUE O BUZZER TOCA)
+// ====================================================================
 void notificarAcessoNegado() {
   for (int i = 0; i < 3; i++) {
     digitalWrite(PINO_LED_VERM, LOW);
-    digitalWrite(PINO_BUZZER, HIGH);
-    delay(100);
+    ligarBuzzer(); // Ativa buzzer
+    delay(120);
     digitalWrite(PINO_LED_VERM, HIGH);
-    digitalWrite(PINO_BUZZER, LOW);
-    delay(100);
+    desligarBuzzer(); // Desativa buzzer
+    delay(120);
   }
-}
-
-void tocarBip(int duracaoMs) {
-  digitalWrite(PINO_BUZZER, HIGH);
-  delay(duracaoMs);
-  digitalWrite(PINO_BUZZER, LOW);
+  desligarBuzzer(); // Garante silêncio após os bips
 }
