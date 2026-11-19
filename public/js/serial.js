@@ -80,7 +80,14 @@ class ArduinoSerialController {
     } catch (err) {
       console.error('Falha ao conectar com o Arduino:', err);
       this.atualizarStatusUI(false, 'Conectar Arduino');
-      if (err.name !== 'NotFoundError') {
+      this.port = null;
+      if (err.name === 'NetworkError' || /Failed to open/i.test(err.message)) {
+        alert('A porta do Arduino está ocupada por outro programa.\n\n' +
+          '• Feche o Monitor Serial da Arduino IDE (ou a IDE inteira).\n' +
+          '• Feche outras abas/janelas deste site.\n' +
+          '• Se continuar, desconecte e reconecte o cabo USB.\n\n' +
+          'Depois clique em "Conectar Arduino" de novo.');
+      } else if (err.name !== 'NotFoundError') {
         alert('Erro ao conectar com a porta Serial: ' + err.message);
       }
     }

@@ -93,13 +93,9 @@ void setup() {
   pinMode(PINO_LED_VERDE, OUTPUT);
   pinMode(PINO_LED_VERM, OUTPUT);
 
-  // 3. Inicializa barramento SPI padrão do Arduino Uno e o leitor RC522
-  SPI.begin();
-  rfid.PCD_Init();
-  rfid.PCD_SetAntennaGain(rfid.RxGain_max); // Máxima sensibilidade de leitura RFID
-  verificarLeitorRFID(); // Autoteste: confirma se o RC522 está respondendo no SPI
-
-  // 4. Inicialização e autoteste do servomotor (cancela)
+  // 3. Inicialização e autoteste do servomotor (cancela)
+  //    Feito ANTES do RC522: o pico de corrente do servo pode reiniciar o
+  //    leitor e deixar a antena desligada.
   // Define faixa de pulso segura do micro-servo SG90 (544us a 2400us)
   servoCancela.attach(PINO_SERVO, 544, 2400);
 
@@ -113,6 +109,12 @@ void setup() {
   digitalWrite(PINO_LED_VERDE, LOW);
   digitalWrite(PINO_LED_VERM, HIGH);
   cancelaAberta = false;
+  delay(400); // espera o servo terminar de se mover antes de ligar o RFID
+
+  // 4. Inicializa barramento SPI padrão do Arduino Uno e o leitor RC522
+  SPI.begin();
+  iniciarLeitorRFID();
+  verificarLeitorRFID(); // Autoteste: confirma se o RC522 está respondendo no SPI
 
   Serial.println(F("ARDUINO_UNO_SMARTPARK_PRONTO"));
   Serial.println(F("Buzzer: Silencioso (ativo apenas em acesso negado)"));
@@ -127,7 +129,8 @@ void loop() {
   // 1. Processa comandos recebidos do computador / site via Serial (OPEN, CLOSE, DENIED, TEST, PING)
   verificarComandosSerial();
 
-  // 2. Realiza leitura do leitor RFID MFRC522
+  // 2. Realiza leitura do leitor RFID MFRC522 (e religa a antena se ela cair)
+  vigiarLeitorRFID();
   verificarLeituraRFID();
 
   // 3. Gerencia fechamento inteligente da cancela após passagem do veículo ou timeout
@@ -141,6 +144,21 @@ void loop() {
 // Lê o registrador de versão do chip. 0x00 ou 0xFF = leitor não responde
 // (fio solto, SDA/RST trocados, alimentação errada).
 // ====================================================================
+void iniciarLeitorRFID() {
+  rfid.PCD_Init();
+  // A biblioteca deixa o RST como entrada "solta"; em módulos sem resistor
+  // de pull-up isso faz o chip entrar em power-down. Forçamos HIGH.
+  pinMode(RST_PIN, OUTPUT);
+  digitalWrite(RST_PIN, HIGH);
+  delay(50);
+  rfid.PCD_AntennaOn();
+  rfid.PCD_SetAntennaGain(rfid.RxGain_max); // Máxima sensibilidade de leitura RFID
+}
+
+bool antenaLigada() {
+  return (rfid.PCD_ReadRegister(MFRC522::TxControlReg) & 0x03) == 0x03;
+}
+
 void verificarLeitorRFID() {
   byte versao = rfid.PCD_ReadRegister(MFRC522::VersionReg);
   if (versao == 0x00 || versao == 0xFF) {
@@ -148,7 +166,20 @@ void verificarLeitorRFID() {
     Serial.println(F("Confira as ligacoes: SDA=10, SCK=13, MOSI=11, MISO=12, RST=4, 3.3V e GND."));
   } else {
     Serial.print(F("INFO:RC522_OK versao=0x"));
-    Serial.println(versao, HEX);
+    Serial.print(versao, HEX);
+    Serial.println(antenaLigada() ? F(" antena=LIGADA") : F(" antena=DESLIGADA"));
+  }
+}
+
+// Se uma queda de tensão (ex: servo) reiniciar o RC522, a antena fica
+// desligada e nenhuma tag é lida. Confere a cada 3 s e religa se preciso.
+void vigiarLeitorRFID() {
+  static unsigned long ultimaChecagem = 0;
+  if (millis() - ultimaChecagem < 3000) return;
+  ultimaChecagem = millis();
+  if (!antenaLigada()) {
+    iniciarLeitorRFID();
+    Serial.println(F("EVENTO:RC522_REINICIADO"));
   }
 }
 

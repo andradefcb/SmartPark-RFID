@@ -23,28 +23,16 @@
   },
   "veiculos": [
     {
-      "id": "VEI-1792702378899",
-      "rfid": "123456789",
-      "nome": "Thiago Andrade",
+      "id": "VEI-1794998028262",
+      "rfid": "C31BA60D",
+      "nome": "Thiago Azevedo",
       "placa": "PHE1493",
       "contato": "(92) 98405-7576",
       "cpf": "704.127.412-88",
-      "login": "PHE1493",
-      "senha": "123",
-      "cargo": "cliente",
-      "criadoEm": "2026-10-22T20:52:58.899Z"
-    },
-    {
-      "id": "VEI-1793914194106",
-      "rfid": "123456",
-      "nome": "Stephanie",
-      "placa": "010203",
-      "contato": "(92) 98405-7576",
-      "cpf": "",
-      "login": "010203",
+      "login": "THIAGO",
       "senha": "1234",
       "cargo": "cliente",
-      "criadoEm": "2026-11-05T21:29:54.106Z"
+      "criadoEm": "2026-11-18T10:33:48.262Z"
     }
   ],
   "sessoes": [
@@ -263,6 +251,31 @@
       "valorCobrado": null,
       "formaPagamento": "PIX",
       "historicoCalculo": null
+    },
+    {
+      "id": "SES-1794998033696",
+      "rfid": "C31BA60D",
+      "veiculo": {
+        "nome": "Thiago Azevedo",
+        "placa": "PHE1493",
+        "contato": "(92) 98405-7576",
+        "cpf": "704.127.412-88"
+      },
+      "entrada": 1794998033696,
+      "saida": 1794998039494,
+      "status": "PAGO",
+      "valorCobrado": 5,
+      "formaPagamento": "PIX",
+      "historicoCalculo": "Permanência de até 30 minutos: R$ 5.00",
+      "tempoMinutos": 1,
+      "tempoFormatado": "1 min",
+      "valorBase": 5,
+      "desconto": 0,
+      "acrescimo": 0,
+      "valorRecebido": 5,
+      "troco": 0,
+      "idPagamentoPix": "189201180727",
+      "saidaLiberadaTotem": true
     }
   ],
   "cobrancasPix": [
@@ -326,6 +339,27 @@
       "expiraEm": "2026-11-17T23:26:38.196-04:00",
       "status": "PENDENTE",
       "criadoEm": 1794970598196
+    },
+    {
+      "id": "189201180727",
+      "provider": "mercadopago",
+      "sessaoId": "SES-1794998033696",
+      "valor": 5,
+      "saida": 1794998039494,
+      "calculo": {
+        "tempoMinutos": 1,
+        "tempoSegundos": 5,
+        "tempoFormatado": "1 min",
+        "valorTotal": 5,
+        "isTolerancia": false,
+        "detalhes": "Permanência de até 30 minutos: R$ 5.00"
+      },
+      "copiaECola": "00020126460014br.gov.bcb.pix0124andradefcb1212@gmail.com52040000530398654045.005802BR5916AT202501140835426009Sao Paulo62250521mpqrinter1892011807276304E2F8",
+      "qrCodeBase64": "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",
+      "expiraEm": "2026-11-18T07:03:59.494-04:00",
+      "status": "PAGO",
+      "criadoEm": 1794998039494,
+      "pagoEm": 1794998145550
     }
   ]
 }
